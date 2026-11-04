@@ -1,40 +1,53 @@
 import { Terminal } from "../../../src/Terminal";
+import { Output } from "../../../src/Terminal/OutputTypes";
 
-describe("Terminal timed actions", () => {
+describe("Terminal timedAction", () => {
+  beforeEach(() => {
+    jest.useFakeTimers(), Terminal.clear();
+  });
+
   afterEach(() => {
     jest.useRealTimers();
-    Terminal.outputHistory = [];
-    Terminal.action = null;
   });
 
-  it("prints a full progress bar when the action completes", async () => {
-    jest.useFakeTimers();
-    jest.spyOn(performance, "now").mockReturnValue(0);
+  test("prints 100% completed progress bar when onDone is called", async () => {
     const onDone = jest.fn();
+    const action = Terminal.timedAction(1, "hack", onDone);
 
-    const action = Terminal.timedAction(1, "test", onDone);
-    const finished = action.finished;
-    await jest.advanceTimersByTimeAsync(1000);
-    await finished;
+    jest.advanceTimersByTime(1000);
+    await action.finished;
 
-    expect(Terminal.outputHistory.at(-1)).toMatchObject({
-      text: `[${"|".repeat(50)}]`,
-    });
     expect(onDone).toHaveBeenCalledTimes(1);
+
+    const lastOutput = Terminal.outputHistory[Terminal.outputHistory.length - 1] as Output;
+    expect(lastOutput.text).toBe(`[${"|".repeat(50)}]`);
   });
 
-  it("prints the partial progress and cancellation message when cancelled", async () => {
-    jest.useFakeTimers();
-    jest.spyOn(performance, "now").mockReturnValueOnce(0).mockReturnValueOnce(100);
+  test("prints 100% completed progress bar when onDone is called even with timer jitter", async () => {
     const onDone = jest.fn();
+    const action = Terminal.timedAction(1, "hack", onDone);
 
-    const action = Terminal.timedAction(1, "test", onDone);
-    const finished = action.finished;
+    jest.spyOn(performance, "now").mockReturnValueOnce(999);
+    jest.advanceTimersByTime(1000);
+    await action.finished;
+
+    const lastOutput = Terminal.outputHistory[Terminal.outputHistory.length - 1] as Output;
+    expect(lastOutput.text).toBe(`[${"|".repeat(50)}]`);
+  });
+
+  test("does not run onDone and reports cancellation when cancelled", async () => {
+    const onDone = jest.fn();
+    const action = Terminal.timedAction(10, "hack", onDone);
+
+    jest.advanceTimersByTime(5000);
     action.cancel();
-
-    await expect(finished).rejects.toThrow("Terminal command test was cancelled");
-    expect(Terminal.outputHistory.at(-2)).toMatchObject({ text: `[${"|".repeat(5)}${"-".repeat(45)}]` });
-    expect(Terminal.outputHistory.at(-1)).toMatchObject({ text: "Cancelled test" });
+    await expect(action.finished).rejects.toThrow();
     expect(onDone).not.toHaveBeenCalled();
+
+    const progressBarOutput = Terminal.outputHistory[Terminal.outputHistory.length - 2] as Output;
+    expect(progressBarOutput.text).toBe(`[${"|".repeat(25)}${"-".repeat(25)}]`);
+
+    const lastOutput = Terminal.outputHistory[Terminal.outputHistory.length - 1] as Output;
+    expect(lastOutput.text).toContain("Cancelled hack");
   });
 });

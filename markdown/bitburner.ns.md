@@ -383,6 +383,27 @@ The current script's PID
 </td></tr>
 <tr><td>
 
+[port](./bitburner.ns.port.md)
+
+
+</td><td>
+
+`readonly`
+
+
+</td><td>
+
+[Port](./bitburner.port.md)
+
+
+</td><td>
+
+Namespace for [port](./bitburner.port.md) functions.
+
+
+</td></tr>
+<tr><td>
+
 [singularity](./bitburner.ns.singularity.md)
 
 
@@ -1202,7 +1223,7 @@ Check if you have root access on a server.
 
 </td><td>
 
-Returns whether the player has access to the darkweb.
+Returns whether the player has access to the Dark Web via a TOR Router. Note that this is not the Darknet accessible via DarkscapeNavigator.exe.
 
 
 </td></tr>
@@ -1477,7 +1498,7 @@ Start another script on the current server.
 
 </td><td>
 
-Get the list of hostnames or IP addresses connected to a server. This function does not return darknet servers (e.g., darkweb). Use [probe](./bitburner.darknet.probe.md) if you want to list darknet servers.
+Get the list of hostnames or IP addresses connected to a server. This function does not return darknet servers (e.g., "darkweb"). Use [probe()](./bitburner.darknet.probe.md) if you want to list darknet servers.
 
 
 </td></tr>
