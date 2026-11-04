@@ -193,7 +193,7 @@ export class Terminal {
           };
         });
       } finally {
-        this.print(progress());
+        this.print(cancelled ? progress() : createProgressBarText({ progress: 1, totalTicks: 50 }));
         if (cancelled) {
           this.print(`Cancelled ${name}`);
         }
